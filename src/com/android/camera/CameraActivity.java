@@ -29,7 +29,7 @@ import android.view.OrientationEventListener;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-
+import android.util.Log;
 import com.android.camera.ui.CameraSwitcher;
 import com.android.gallery3d.app.PhotoPage;
 import com.android.gallery3d.common.ApiHelper;
@@ -41,6 +41,8 @@ public class CameraActivity extends ActivityBase
     public static final int VIDEO_MODULE_INDEX = 1;
     public static final int PANORAMA_MODULE_INDEX = 2;
     public static final int LIGHTCYCLE_MODULE_INDEX = 3;
+
+    private boolean mEnablePanorama;
 
     CameraModule mCurrentModule;
     private FrameLayout mFrame;
@@ -97,11 +99,19 @@ public class CameraActivity extends ActivityBase
                                 ? DRAW_IDS.length : DRAW_IDS.length - 1);
         if (!ApiHelper.HAS_OLD_PANORAMA) totaldrawid--;
 
-        int[] drawids = new int[totaldrawid];
-        int[] moduleids = new int[totaldrawid];
+        //int[] drawids = new int[totaldrawid];
+        mEnablePanorama = CameraHolder.instance().getBackCameraId() != -1;
+        Log.d(TAG, "shoule enable panorama? " + mEnablePanorama);
+        int moduleNum = LightCycleHelper.hasLightCycleCapture(this)
+        		? DRAW_IDS.length : DRAW_IDS.length - 1;
+        moduleNum -= mEnablePanorama ? 0 : 1;
+        int[] drawids = new int[moduleNum];
+        int[] moduleids = new int[moduleNum];
         int ix = 0;
         for (int i = 0; i < mDrawables.length; i++) {
-            if (i == PANORAMA_MODULE_INDEX && !ApiHelper.HAS_OLD_PANORAMA) {
+//            if (i == PANORAMA_MODULE_INDEX && !ApiHelper.HAS_OLD_PANORAMA) {
+        	if ((i == LIGHTCYCLE_MODULE_INDEX && !LightCycleHelper.hasLightCycleCapture(this))
+                    || (i == PANORAMA_MODULE_INDEX && !mEnablePanorama)) {
                 continue; // not enabled, so don't add to UI
             }
             if (i == LIGHTCYCLE_MODULE_INDEX && !LightCycleHelper.hasLightCycleCapture(this)) {
